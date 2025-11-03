@@ -1,0 +1,56 @@
+From 9b8adec2033ce9a58b7e72f5374ace4ba0cdd7b4 Mon Sep 17 00:00:00 2001
+From: razvantufisi <rtufisi@phasetwo.io>
+Date: Sat, 10 Aug 2024 16:15:10 +0300
+Subject: [PATCH] #86 Force valid response if the user/email is invalid
+
+---
+ .../keycloak/magic/auth/MagicLinkAuthenticator.java  | 12 ++++++++----
+ .../auth/MagicLinkContinuationAuthenticator.java     | 12 ++++++++----
+ 2 files changed, 16 insertions(+), 8 deletions(-)
+
+diff --git a/src/main/java/io/phasetwo/keycloak/magic/auth/MagicLinkAuthenticator.java b/src/main/java/io/phasetwo/keycloak/magic/auth/MagicLinkAuthenticator.java
+index 5711f4b..b81c72c 100644
+--- a/src/main/java/io/phasetwo/keycloak/magic/auth/MagicLinkAuthenticator.java
++++ b/src/main/java/io/phasetwo/keycloak/magic/auth/MagicLinkAuthenticator.java
+@@ -84,10 +84,14 @@ public void action(AuthenticationFlowContext context) {
+     if (user == null
+         || MagicLink.trimToNull(user.getEmail()) == null
+         || !MagicLink.isValidEmail(user.getEmail())) {
+-      context.getEvent().event(EventType.LOGIN_ERROR).error(Errors.INVALID_EMAIL);
+-      Response challengeResponse =
+-          challenge(context, getDefaultChallengeMessage(context), FIELD_USERNAME);
+-      context.failureChallenge(AuthenticationFlowError.INVALID_USER, challengeResponse);
++      context.getEvent()
++              .detail(AbstractUsernameFormAuthenticator.ATTEMPTED_USERNAME, email)
++              .event(EventType.LOGIN_ERROR).error(Errors.INVALID_EMAIL);
++      context
++              .getAuthenticationSession()
++              .setAuthNote(AbstractUsernameFormAuthenticator.ATTEMPTED_USERNAME, email);
++      log.debugf("user attempted to login with username/email: %s", email);
++      context.forceChallenge(context.form().createForm("view-email.ftl"));
+       return;
+     }
+ 
+diff --git a/src/main/java/io/phasetwo/keycloak/magic/auth/MagicLinkContinuationAuthenticator.java b/src/main/java/io/phasetwo/keycloak/magic/auth/MagicLinkContinuationAuthenticator.java
+index db9764f..e61cfe0 100644
+--- a/src/main/java/io/phasetwo/keycloak/magic/auth/MagicLinkContinuationAuthenticator.java
++++ b/src/main/java/io/phasetwo/keycloak/magic/auth/MagicLinkContinuationAuthenticator.java
+@@ -125,10 +125,14 @@ public void action(AuthenticationFlowContext context) {
+     if (user == null
+         || MagicLink.trimToNull(user.getEmail()) == null
+         || !MagicLink.isValidEmail(user.getEmail())) {
+-      context.getEvent().event(EventType.LOGIN_ERROR).error(Errors.INVALID_EMAIL);
+-      Response challengeResponse =
+-          challenge(context, getDefaultChallengeMessage(context), FIELD_USERNAME);
+-      context.failureChallenge(AuthenticationFlowError.INVALID_USER, challengeResponse);
++      context.getEvent()
++              .detail(AbstractUsernameFormAuthenticator.ATTEMPTED_USERNAME, email)
++              .event(EventType.LOGIN_ERROR).error(Errors.INVALID_EMAIL);
++      context
++              .getAuthenticationSession()
++              .setAuthNote(AbstractUsernameFormAuthenticator.ATTEMPTED_USERNAME, email);
++      log.debugf("user attempted to login with username/email: %s", email);
++      context.forceChallenge(context.form().createForm("view-email.ftl"));
+       return;
+     }
+
