@@ -99,7 +99,23 @@ public class MagicLinkAuthenticatorFactory implements AuthenticatorFactory {
         "Toggle whether magic link should be persistent until expired.");
     actionTokenPersistent.setDefaultValue(true);
 
-    return Arrays.asList(createUser, updateProfile, updatePassword, actionTokenPersistent);
+    ProviderConfigProperty recaptchaSiteKey = new ProviderConfigProperty();
+    recaptchaSiteKey.setType(ProviderConfigProperty.STRING_TYPE);
+    recaptchaSiteKey.setName(MagicLinkAuthenticator.RECAPTCHA_SITE_KEY_CONFIG_PROPERTY);
+    recaptchaSiteKey.setLabel("reCAPTCHA Site Key");
+
+    ProviderConfigProperty recaptchaSecret = new ProviderConfigProperty();
+    recaptchaSecret.setType(ProviderConfigProperty.STRING_TYPE);
+    recaptchaSecret.setName(MagicLinkAuthenticator.RECAPTCHA_SECRET_CONFIG_PROPERTY);
+    recaptchaSecret.setLabel("reCAPTCHA Secret Key");
+
+    ProviderConfigProperty recaptchaMinScore = new ProviderConfigProperty();
+    recaptchaMinScore.setType(ProviderConfigProperty.STRING_TYPE);
+    recaptchaMinScore.setName(MagicLinkAuthenticator.RECAPTCHA_MIN_SCORE_CONFIG_PROPERTY);
+    recaptchaMinScore.setLabel("reCAPTCHA Min Score (v3)");
+    recaptchaMinScore.setDefaultValue("0.5");
+
+    return Arrays.asList(createUser, updateProfile, updatePassword, actionTokenPersistent, recaptchaSiteKey, recaptchaSecret, recaptchaMinScore);
   }
 
   @Override
